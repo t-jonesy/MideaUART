@@ -108,6 +108,26 @@ float StatusData::getPowerUsage() const {
   }
 }
 
+// Some models report the real-time power field (bytes 16..18) as a plain
+// big-endian binary integer in units of 0.1 W instead of BCD. Decoding such a
+// frame as BCD reads far too low (e.g. 0x00,0x35,0x08 -> 350.8 W as BCD vs
+// 1357.6 W as binary). See powerBytesLookBinary() for format detection.
+float StatusData::getPowerUsageBinary() const {
+  const uint8_t *d = this->m_data.data() + 16;  // bytes 16,17,18 (MSB..LSB)
+  uint32_t raw = (uint32_t(d[0]) << 16) | (uint32_t(d[1]) << 8) | d[2];
+  return static_cast<float>(raw) * 0.1F;
+}
+
+// A genuine BCD power field can only contain nibbles 0-9. If any nibble in the
+// three power bytes is > 9, the frame cannot be BCD and must be binary.
+bool StatusData::powerBytesLookBinary() const {
+  const uint8_t *d = this->m_data.data() + 16;
+  for (int i = 0; i < 3; i++)
+    if ((d[i] >> 4) > 9 || (d[i] & 0x0F) > 9)
+      return true;
+  return false;
+}
+
 }  // namespace ac
 }  // namespace midea
 }  // namespace dudanov

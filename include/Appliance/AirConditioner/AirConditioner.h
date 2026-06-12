@@ -52,6 +52,9 @@ class AirConditioner : public ApplianceBase {
   float m_outdoorTemp{};
   float m_targetTemp{};
   float m_powerUsage{};
+  // Sticky latch for power-field encoding: once a frame proves the unit uses
+  // binary (not BCD) encoding, stay binary for the rest of the session.
+  bool m_powerFormatBinary{};
   Mode m_mode{Mode::MODE_OFF};
   Preset m_preset{Preset::PRESET_NONE};
   FanMode m_fanMode{FanMode::FAN_AUTO};

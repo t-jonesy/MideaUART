@@ -105,7 +105,9 @@ class StatusData : public FrameData {
   void setPreset(Preset preset);
 
   /* POWER USAGE */
-  float getPowerUsage() const;
+  float getPowerUsage() const;        // BCD-format models
+  float getPowerUsageBinary() const;  // binary-format models (units of 0.1 W)
+  bool powerBytesLookBinary() const;  // true if power bytes can't be valid BCD
 
   void setBeeper(bool state) {
     this->m_setMask(1, true, 2);

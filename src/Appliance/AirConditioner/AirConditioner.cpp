@@ -163,8 +163,15 @@ void AirConditioner::m_getPowerUsage() {
       const auto status = data.to<StatusData>();
       if (!status.hasPowerInfo())
         return ResponseStatus::RESPONSE_WRONG;
-      if (this->m_powerUsage != status.getPowerUsage()) {
-        this->m_powerUsage = status.getPowerUsage();
+      // Auto-detect BCD vs binary power encoding (model-dependent). A genuine
+      // BCD unit never emits a nibble > 9, so once we see one we latch to
+      // binary permanently and never misfire on a real BCD model.
+      if (status.powerBytesLookBinary())
+        this->m_powerFormatBinary = true;
+      const float power = this->m_powerFormatBinary ? status.getPowerUsageBinary()
+                                                    : status.getPowerUsage();
+      if (this->m_powerUsage != power) {
+        this->m_powerUsage = power;
         this->sendUpdate();
       }
       return ResponseStatus::RESPONSE_OK;
